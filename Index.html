@@ -1,609 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    <title>Budget Calendar</title>
+<meta charset="UTF-8">
+<!-- PWA Meta Tags for native app feel -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111111">
+<title>Budget Calendar</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+user-select: none;
+}
 
-        body {
-            background-color: #000000;
-            color: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            max-width: 500px;
-            margin: 0 auto;
-            border-left: 1px solid #1a1a1a;
-            border-right: 1px solid #1a1a1a;
-        }
+body {
+background-color: #000000;
+color: #FFFFFF;
+display: flex;
+flex-direction: column;
+height: 100vh;
+overflow: hidden;
+}
 
-        .header {
-            padding: 24px 20px 16px 20px;
-            background-color: #111111;
-            border-bottom: 1px solid #222222;
-        }
+.header {
+padding: 40px 20px 20px 20px;
+background-color: #111111;
+border-bottom: 1px solid #333;
+}
 
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #FF3B30;
-            margin-bottom: 15px;
-        }
+.top-nav {
+display: flex;
+justify-content: flex-start;
+align-items: center;
+color: #FF3B30; /* iOS Red */
+font-size: 20px;
+margin-bottom: 15px;
+}
 
-        .month-nav {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            color: #FF3B30;
-            font-size: 20px;
-            font-weight: 600;
-        }
+.month-nav {
+display: flex;
+align-items: center;
+gap: 15px;
+}
 
-        .nav-btn {
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 22px;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(255, 59, 48, 0.1);
-            transition: background 0.2s;
-        }
+.nav-btn {
+cursor: pointer;
+font-weight: bold;
+font-size: 24px;
+padding: 0 5px;
+}
 
-        .nav-btn:active {
-            background: rgba(255, 59, 48, 0.3);
-        }
+.monthly-label {
+font-size: 14px;
+text-align: right;
+color: #AAAAAA;
+margin-bottom: 5px;
+}
 
-        .monthly-label {
-            font-size: 13px;
-            text-align: right;
-            color: #888888;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.monthly-total {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+font-size: 32px;
+font-weight: bold;
+cursor: pointer;
+}
 
-        .monthly-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-size: 32px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+.weekdays {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+text-align: center;
+padding: 12px 10px;
+font-size: 12px;
+color: #AAAAAA;
+border-bottom: 1px solid #333;
+}
 
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            padding: 12px 10px 6px 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #888888;
-            background-color: #0d0d0d;
-        }
+.calendar-grid {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+text-align: center;
+padding: 10px;
+row-gap: 15px;
+}
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            padding: 10px;
-            row-gap: 8px;
-            background-color: #0d0d0d;
-            border-bottom: 1px solid #222222;
-        }
+.day {
+font-size: 18px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+height: 42px;
+width: 42px;
+margin: auto;
+border-radius: 10px;
+cursor: pointer;
+position: relative;
+}
 
-        .day {
-            font-size: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 40px;
-            width: 40px;
-            margin: auto;
-            border-radius: 10px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.15s ease;
-        }
+.day.selected {
+background-color: #FF3B30;
+color: white;
+font-weight: bold;
+}
 
-        .day.selected {
-            background-color: #FF3B30;
-            color: #ffffff;
-            font-weight: bold;
-        }
+.dot {
+height: 5px;
+width: 5px;
+background-color: #0A84FF; /* iOS Blue */
+border-radius: 50%;
+position: absolute;
+bottom: 2px;
+display: none;
+}
 
-        .dot {
-            height: 4px;
-            width: 4px;
-            background-color: #0A84FF;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 3px;
-            display: none;
-        }
+.has-data .dot { display: block; }
 
-        .has-data .dot { 
-            display: block; 
-        }
+/* New Weekly Breakdown Grid Styles */
+.weekly-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+background-color: #333; /* Acts as the border color */
+gap: 1px; /* Creates the thin border lines */
+border: 1px solid #333;
+margin: 10px 20px;
+}
 
-        .day.selected .dot {
-            background-color: #ffffff;
-        }
+.week-box {
+background-color: #000000;
+padding: 12px 15px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
 
-        /* --- Weekly Breakdown Grid --- */
-        .weekly-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border: 1px solid #222222;
-            margin: 15px;
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: #0a0a0a;
-        }
+.week-title {
+font-size: 18px;
+color: #FFFFFF;
+}
 
-        .weekly-cell {
-            padding: 14px 16px;
-            border-bottom: 1px solid #222222;
-            border-right: 1px solid #222222;
-        }
+.week-amount {
+font-size: 20px;
+color: #AAAAAA;
+}
 
-        .weekly-cell:nth-child(even) {
-            border-right: none;
-        }
+.bottom-section {
+padding: 20px;
+flex-grow: 1;
+overflow-y: auto;
+}
 
-        .weekly-cell.no-border-bottom {
-            border-bottom: none;
-        }
+.daily-amount {
+font-size: 50px;
+font-weight: bold;
+display: flex;
+align-items: center;
+cursor: pointer;
+}
 
-        .w-label {
-            font-size: 14px;
-            color: #888888;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
+.starting-label {
+font-size: 15px;
+color: #FFFFFF;
+margin-left: 12px;
+font-weight: normal;
+}
 
-        .w-amt {
-            font-size: 20px;
-            font-weight: 700;
-            color: #FFFFFF;
-        }
+.purchase-list {
+margin-top: 15px;
+list-style-type: none;
+}
 
-        .bottom-section {
-            padding: 15px 20px 30px 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
+.purchase-item {
+font-size: 22px;
+margin-bottom: 12px;
+color: #FFFFFF;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
 
-        .daily-card {
-            background-color: #111111;
-            border: 1px solid #222222;
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 15px;
-        }
+.btn-delete {
+background: none;
+border: none;
+color: #FF3B30;
+font-size: 20px;
+cursor: pointer;
+padding: 2px 10px;
+opacity: 0.8;
+}
 
-        .daily-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
+.btn-delete:active {
+opacity: 1;
+}
 
-        .daily-title {
-            font-size: 14px;
-            color: #888888;
-        }
+.btn-add {
+color: #FFFFFF;
+background: none;
+border: none;
+font-size: 20px;
+text-align: center;
+width: 100%;
+margin-top: 25px;
+cursor: pointer;
+}
 
-        .daily-amount {
-            font-size: 42px;
-            font-weight: 800;
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .starting-label {
-            font-size: 13px;
-            color: #0A84FF;
-            font-weight: 600;
-        }
-
-        .purchase-list {
-            list-style-type: none;
-            margin-top: 10px;
-        }
-
-        .purchase-item {
-            font-size: 18px;
-            padding: 10px 0;
-            color: #FFFFFF;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1c1c1e;
-        }
-
-        .purchase-item:last-child {
-            border-bottom: none;
-        }
-
-        .btn-delete {
-            background: rgba(255, 59, 48, 0.15);
-            border: none;
-            color: #FF3B30;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-
-        .btn-delete:active {
-            background: rgba(255, 59, 48, 0.3);
-        }
-
-        .action-buttons {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-main {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn-main:active {
-            opacity: 0.8;
-        }
-
-        .btn-add {
-            background-color: #34C759;
-            color: #FFFFFF;
-        }
-
-        .btn-setup {
-            background-color: #0A84FF;
-            color: #FFFFFF;
-        }
-
-        .empty-state {
-            color: #555555;
-            text-align: center;
-            font-size: 14px;
-            padding: 15px 0;
-        }
-    </style>
+.btn-setup {
+color: #0A84FF;
+background: none;
+border: none;
+font-size: 18px;
+margin-top: 10px;
+cursor: pointer;
+}
+</style>
 </head>
 <body>
 
-    <!-- Top Header & Monthly Total -->
-    <div class="header">
-        <div class="top-nav">
-            <div class="month-nav">
-                <span class="nav-btn" onclick="changeMonth(-1)">&#10094;</span>
-                <span id="year-label">2026</span>
-                <span class="nav-btn" onclick="changeMonth(1)">&#10095;</span>
-            </div>
-        </div>
-        <div class="monthly-label">Monthly Remaining</div>
-        <div class="monthly-total" onclick="setMonthlyLimit()" title="Tap to change monthly budget">
-            <span id="month-name">September</span>
-            <span id="monthly-amount">$0.00</span>
-        </div>
-    </div>
+<!-- Top Header & Monthly Total -->
+<div class="header">
+<div class="top-nav">
+<div class="month-nav">
+<span class="nav-btn" onclick="changeMonth(-1)">〈</span>
+<span id="year-label">2026</span>
+<span class="nav-btn" onclick="changeMonth(1)">〉</span>
+</div>
+</div>
+<div class="monthly-label">Monthly Remaining Amount:</div>
+<div class="monthly-total" onclick="setMonthlyLimit()" title="Tap to change monthly budget">
+<span id="month-name">September</span>
+<span id="monthly-amount">$0.00</span>
+</div>
+</div>
 
-    <!-- Calendar Area -->
-    <div class="weekdays">
-        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-    </div>
-    <div class="calendar-grid" id="calendar">
-        <!-- Dynamic calendar grid -->
-    </div>
+<!-- Calendar Area -->
+<div class="weekdays">
+<span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+</div>
+<div class="calendar-grid" id="calendar">
+<!-- Dynamic calendar grid -->
+</div>
 
-    <!-- 2-Column Weekly Breakdown Grid -->
-    <div id="weekly-grid" class="weekly-grid">
-        <!-- Dynamic weekly totals -->
-    </div>
+<!-- Weekly Breakdown Grid -->
+<div class="weekly-grid" id="weekly-grid">
+<!-- Dynamic weekly totals will be injected here -->
+</div>
 
-    <!-- Bottom Selected Day Area -->
-    <div class="bottom-section">
-        <div class="daily-card">
-            <div class="daily-header">
-                <span class="daily-title" id="selected-date-title">Selected Day</span>
-                <span class="starting-label" id="starting-label" onclick="setDailyLimit()" style="cursor: pointer;"></span>
-            </div>
-            <div class="daily-amount" onclick="editDailyLimit()" title="Tap to edit daily budget">
-                <span id="daily-remaining">$0.00</span>
-            </div>
-            
-            <ul class="purchase-list" id="purchase-list">
-                <!-- Dynamic purchases -->
-            </ul>
-        </div>
+<!-- Bottom Selected Day Area -->
+<div class="bottom-section">
+<div class="daily-amount" onclick="editDailyLimit()" title="Tap to edit daily allowance">
+<span id="daily-remaining">$0.00</span>
+<span class="starting-label" id="starting-label"></span>
+</div>
 
-        <div class="action-buttons">
-            <button class="btn-main btn-setup" id="btn-set-daily" onclick="setDailyLimit()">
-                Set Daily Allowance
-            </button>
-            <button class="btn-main btn-add" id="btn-add-purchase" onclick="addPurchase()" style="display: none;">
-                + Add Purchase
-            </button>
-        </div>
-    </div>
+<ul class="purchase-list" id="purchase-list">
+<!-- Dynamic purchases with delete buttons -->
+</ul>
 
-    <script>
-        const monthNames = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        ];
+<button class="btn-setup" id="btn-set-daily" onclick="setDailyLimit()" style="display: none;">
+Set Daily Allowance
+</button>
+<button class="btn-add" id="btn-add-purchase" onclick="addPurchase()">
++ Add Purchase
+</button>
+</div>
 
-        let currentDate = new Date();
-        let currentYear = currentDate.getFullYear();
-        let currentMonth = currentDate.getMonth();
-        let selectedDay = currentDate.getDate();
+<script>
+// --- CALENDAR STATE ---
+const monthNames = [
+"January", "February", "March", "April", "May", "June",
+"July", "August", "September", "October", "November", "December"
+];
 
-        // Load persisted local data safely
-        let appData = {
-            monthlyLimits: {},
-            dailyLimits: {},
-            purchases: {}
-        };
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth();
+let selectedDay = currentDate.getDate();
 
-        try {
-            const saved = localStorage.getItem('budgetAppData');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                appData = {
-                    monthlyLimits: parsed.monthlyLimits || {},
-                    dailyLimits: parsed.dailyLimits || {},
-                    purchases: parsed.purchases || {}
-                };
-            }
-        } catch (e) {
-            console.error("Could not load local storage", e);
-        }
+// Load data from phone's local storage
+let appData = JSON.parse(localStorage.getItem('budgetAppData')) || {
+monthlyLimits: {},
+dailyLimits: {},
+purchases: {}
+};
 
-        function saveData() {
-            try {
-                localStorage.setItem('budgetAppData', JSON.stringify(appData));
-            } catch (e) {
-                console.error("Could not save to local storage", e);
-            }
-        }
+function saveData() {
+localStorage.setItem('budgetAppData', JSON.stringify(appData));
+}
 
-        function getMonthKey() {
-            return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-        }
+function getMonthKey() {
+return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+}
 
-        function getDateKey(day) {
-            return `${getMonthKey()}-${String(day).padStart(2, '0')}`;
-        }
+function getDateKey(day) {
+return `${getMonthKey()}-${String(day).padStart(2, '0')}`;
+}
 
-        function changeMonth(delta) {
-            currentMonth += delta;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            } else if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
+// --- NAVIGATION LOGIC ---
+function changeMonth(delta) {
+currentMonth += delta;
+if (currentMonth < 0) {
+currentMonth = 11;
+currentYear--;
+} else if (currentMonth > 11) {
+currentMonth = 0;
+currentYear++;
+}
 
-            let daysInNewMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            if (selectedDay > daysInNewMonth) {
-                selectedDay = daysInNewMonth;
-            }
-            updateUI();
-        }
+let daysInNewMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+if (selectedDay > daysInNewMonth) {
+selectedDay = daysInNewMonth;
+}
+updateUI();
+}
 
-        /* --- STREAMING_CHUNK:Updating UI Components dynamically... --- */
-        function updateUI() {
-            const currentMonthKey = getMonthKey();
-            let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+// --- UI RENDER LOGIC ---
+function updateUI() {
+const currentMonthKey = getMonthKey();
+let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-            // Header labels
-            document.getElementById('year-label').innerText = currentYear;
-            document.getElementById('month-name').innerText = monthNames[currentMonth];
+// Update Header Text
+document.getElementById('year-label').innerText = currentYear;
+document.getElementById('month-name').innerText = monthNames[currentMonth];
 
-            // Calculate Monthly & Weekly Totals
-            let monthlyStarting = appData.monthlyLimits[currentMonthKey] || 0;
-            let totalMonthlyPurchases = 0;
-            let weeklyTotals = [0, 0, 0, 0, 0]; 
+// 1. Calculate Monthly Math & Weekly Totals
+let monthlyStarting = appData.monthlyLimits[currentMonthKey] || 0;
+let totalMonthlyPurchases = 0;
 
-            for (let dateKey in appData.purchases) {
-                if (dateKey.startsWith(currentMonthKey)) {
-                    let day = parseInt(dateKey.split('-')[2], 10);
-                    let weekIndex = Math.min(Math.floor((day - 1) / 7), 4); 
+// Create an array to hold totals for up to 5 weeks (groups of 7 days)
+let totalWeeks = Math.ceil(daysInMonth / 7);
+let weeklyTotals = new Array(totalWeeks).fill(0);
 
-                    if (Array.isArray(appData.purchases[dateKey])) {
-                        appData.purchases[dateKey].forEach(amount => {
-                            let val = parseFloat(amount) || 0;
-                            totalMonthlyPurchases += val;
-                            weeklyTotals[weekIndex] += val;
-                        });
-                    }
-                }
-            }
+for (let day = 1; day <= daysInMonth; day++) {
+let dateKey = getDateKey(day);
+if (appData.purchases[dateKey]) {
+let dayTotal = appData.purchases[dateKey].reduce((a, b) => a + b, 0);
+totalMonthlyPurchases += dayTotal;
 
-            let monthlyRemaining = monthlyStarting - totalMonthlyPurchases;
-            document.getElementById('monthly-amount').innerText = `$${monthlyRemaining.toFixed(2)}`;
+// Determine which week this day belongs to (0-indexed)
+let weekIndex = Math.floor((day - 1) / 7);
+weeklyTotals[weekIndex] += dayTotal;
+}
+}
 
-            // Render 2-Column Grid (Row 1: Week 1 & Week 3, Row 2: Week 2 & Week 4, plus Week 5 if relevant)
-            let showWeek5 = daysInMonth > 28 || weeklyTotals[4] > 0;
-            document.getElementById('weekly-grid').innerHTML = `
-                <div class="weekly-cell">
-                    <div class="w-label">Week 1</div>
-                    <div class="w-amt">$${weeklyTotals[0].toFixed(2)}</div>
-                </div>
-                <div class="weekly-cell">
-                    <div class="w-label">Week 3</div>
-                    <div class="w-amt">$${weeklyTotals[2].toFixed(2)}</div>
-                </div>
-                <div class="weekly-cell ${showWeek5 ? '' : 'no-border-bottom'}">
-                    <div class="w-label">Week 2</div>
-                    <div class="w-amt">$${weeklyTotals[1].toFixed(2)}</div>
-                </div>
-                <div class="weekly-cell ${showWeek5 ? '' : 'no-border-bottom'}">
-                    <div class="w-label">Week 4</div>
-                    <div class="w-amt">$${weeklyTotals[3].toFixed(2)}</div>
-                </div>
-                ${showWeek5 ? `
-                <div class="weekly-cell no-border-bottom">
-                    <div class="w-label">Week 5</div>
-                    <div class="w-amt">$${weeklyTotals[4].toFixed(2)}</div>
-                </div>
-                <div class="weekly-cell no-border-bottom"></div>
-                ` : ''}
-            `;
+let monthlyRemaining = monthlyStarting - totalMonthlyPurchases;
+document.getElementById('monthly-amount').innerText = `$${monthlyRemaining.toFixed(2)}`;
 
-            // Render Calendar
-            const calendarEl = document.getElementById('calendar');
-            calendarEl.innerHTML = '';
+// 2. Render Calendar Grid
+const calendarEl = document.getElementById('calendar');
+calendarEl.innerHTML = '';
 
-            let firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+let firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
 
-            for (let i = 0; i < firstDayOfWeek; i++) {
-                calendarEl.innerHTML += `<div></div>`;
-            }
+for (let i = 0; i < firstDayOfWeek; i++) {
+calendarEl.innerHTML += `<div></div>`;
+}
 
-            for (let day = 1; day <= daysInMonth; day++) {
-                let dateKey = getDateKey(day);
-                let hasData = (appData.dailyLimits[dateKey] !== undefined ||
-                    (appData.purchases[dateKey] && appData.purchases[dateKey].length > 0)) ? 'has-data' : '';
-                let isSelected = (day === selectedDay) ? 'selected' : '';
+for (let day = 1; day <= daysInMonth; day++) {
+let dateKey = getDateKey(day);
+let hasData = (appData.dailyLimits[dateKey] !== undefined ||
+(appData.purchases[dateKey] && appData.purchases[dateKey].length > 0)) ? 'has-data' : '';
+let isSelected = (day === selectedDay) ? 'selected' : '';
 
-                calendarEl.innerHTML += `
-                    <div class="day ${isSelected} ${hasData}" onclick="selectDay(${day})">
-                        ${day}
-                        <div class="dot"></div>
-                    </div>
-                `;
-            }
+calendarEl.innerHTML += `
+<div class="day ${isSelected} ${hasData}" onclick="selectDay(${day})">
+${day}
+<div class="dot"></div>
+</div>
+`;
+}
 
-            // Render Daily Details Section
-            let selectedDateKey = getDateKey(selectedDay);
-            document.getElementById('selected-date-title').innerText = `${monthNames[currentMonth]} ${selectedDay}, ${currentYear}`;
-            
-            let dailyStarting = appData.dailyLimits[selectedDateKey];
-            let dailyPurchases = appData.purchases[selectedDateKey] || [];
-            let totalDailyPurchases = dailyPurchases.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+// 3. Render Weekly Breakdown Grid
+const weeklyGridEl = document.getElementById('weekly-grid');
+weeklyGridEl.innerHTML = '';
 
-            if (dailyStarting !== undefined) {
-                let dailyRemaining = parseFloat(dailyStarting) - totalDailyPurchases;
-                document.getElementById('daily-remaining').innerText = `$${dailyRemaining.toFixed(2)}`;
-                document.getElementById('starting-label').innerText = `Limit: $${parseFloat(dailyStarting).toFixed(2)}`;
+weeklyTotals.forEach((total, index) => {
+weeklyGridEl.innerHTML += `
+<div class="week-box">
+<div class="week-title">Week ${index + 1}</div>
+<div class="week-amount">$ ${total.toFixed(2)}</div>
+</div>
+`;
+});
 
-                document.getElementById('btn-set-daily').innerText = "Edit Daily Allowance";
-                document.getElementById('btn-add-purchase').style.display = 'block';
-            } else {
-                document.getElementById('daily-remaining').innerText = `$0.00`;
-                document.getElementById('starting-label').innerText = 'No limit set';
-                document.getElementById('btn-set-daily').innerText = "Set Daily Allowance";
-                document.getElementById('btn-add-purchase').style.display = 'none';
-            }
+// 4. Update Bottom Detail View
+let selectedDateKey = getDateKey(selectedDay);
+let dailyStarting = appData.dailyLimits[selectedDateKey];
+let dailyPurchases = appData.purchases[selectedDateKey] || [];
 
-            // Render Purchases List
-            const purchaseListEl = document.getElementById('purchase-list');
-            purchaseListEl.innerHTML = '';
-            
-            if (dailyPurchases.length === 0) {
-                purchaseListEl.innerHTML = `<div class="empty-state">No purchases recorded for this day.</div>`;
-            } else {
-                dailyPurchases.forEach((amount, index) => {
-                    purchaseListEl.innerHTML += `
-                        <li class="purchase-item">
-                            <span>-$${parseFloat(amount).toFixed(2)}</span>
-                            <button class="btn-delete" onclick="deletePurchase(${index})">Remove</button>
-                        </li>
-                    `;
-                });
-            }
-        }
+let totalDailyPurchases = dailyPurchases.reduce((a, b) => a + b, 0);
 
-        /* --- STREAMING_CHUNK:User Actions & Event Handlers... --- */
-        function selectDay(day) {
-            selectedDay = day;
-            updateUI();
-        }
+if (dailyStarting !== undefined) {
+let dailyRemaining = dailyStarting - totalDailyPurchases;
+document.getElementById('daily-remaining').innerText = `$${dailyRemaining.toFixed(2)}`;
+document.getElementById('starting-label').innerText = 'Daily Allowance';
 
-        function setMonthlyLimit() {
-            let currentLimit = appData.monthlyLimits[getMonthKey()] || '';
-            let input = prompt(`Enter budget limit for ${monthNames[currentMonth]} ${currentYear}:`, currentLimit);
-            if (input !== null && input.trim() !== "" && !isNaN(input)) {
-                appData.monthlyLimits[getMonthKey()] = parseFloat(input);
-                saveData();
-                updateUI();
-            }
-        }
+document.getElementById('btn-set-daily').style.display = 'none';
+document.getElementById('btn-add-purchase').style.display = 'block';
+} else {
+document.getElementById('daily-remaining').innerText = `$0.00`;
+document.getElementById('starting-label').innerText = '';
+document.getElementById('btn-set-daily').style.display = 'block';
+document.getElementById('btn-add-purchase').style.display = 'none';
+}
 
-        function setDailyLimit() {
-            let selectedDateKey = getDateKey(selectedDay);
-            let currentLimit = appData.dailyLimits[selectedDateKey] !== undefined ? appData.dailyLimits[selectedDateKey] : '';
-            let input = prompt(`Enter daily allowance for ${monthNames[currentMonth]} ${selectedDay}:`, currentLimit);
-            if (input !== null && input.trim() !== "" && !isNaN(input)) {
-                appData.dailyLimits[selectedDateKey] = parseFloat(input);
-                saveData();
-                updateUI();
-            }
-        }
+// Render list of purchases with delete option
+const purchaseListEl = document.getElementById('purchase-list');
+purchaseListEl.innerHTML = '';
+dailyPurchases.forEach((amount, index) => {
+purchaseListEl.innerHTML += `
+<li class="purchase-item">
+<span>• -$${amount.toFixed(2)}</span>
+<button class="btn-delete" onclick="deletePurchase(${index})">✕</button>
+</li>
+`;
+});
+}
 
-        function editDailyLimit() {
-            setDailyLimit();
-        }
+// --- USER ACTIONS ---
+function selectDay(day) {
+selectedDay = day;
+updateUI();
+}
 
-        function addPurchase() {
-            let input = prompt("Enter purchase amount:");
-            if (input !== null && input.trim() !== "" && !isNaN(input)) {
-                let dateKey = getDateKey(selectedDay);
-                if (!appData.purchases[dateKey]) {
-                    appData.purchases[dateKey] = [];
-                }
-                appData.purchases[dateKey].push(parseFloat(input));
-                saveData();
-                updateUI();
-            }
-        }
+function setMonthlyLimit() {
+let currentLimit = appData.monthlyLimits[getMonthKey()] || '';
+let limit = prompt(`Enter budget limit for ${monthNames[currentMonth]} ${currentYear}:`, currentLimit);
+if (limit !== null && !isNaN(limit) && limit !== "") {
+appData.monthlyLimits[getMonthKey()] = parseFloat(limit);
+saveData();
+updateUI();
+}
+}
 
-        function deletePurchase(index) {
-            let dateKey = getDateKey(selectedDay);
-            if (appData.purchases[dateKey]) {
-                appData.purchases[dateKey].splice(index, 1);
-                saveData();
-                updateUI();
-            }
-        }
+function setDailyLimit() {
+let selectedDateKey = getDateKey(selectedDay);
+let currentLimit = appData.dailyLimits[selectedDateKey] !== undefined ? appData.dailyLimits[selectedDateKey] : '';
+let limit = prompt(`Enter daily allowance for ${monthNames[currentMonth]} ${selectedDay}:`, currentLimit);
+if (limit !== null && !isNaN(limit) && limit !== "") {
+appData.dailyLimits[selectedDateKey] = parseFloat(limit);
+saveData();
+updateUI();
+}
+}
 
-        // Initialize on page load
-        window.onload = function() {
-            updateUI();
-        };
-    </script>
+function editDailyLimit() {
+let selectedDateKey = getDateKey(selectedDay);
+// Only allow editing via tap on daily amount if an allowance has already been set
+if (appData.dailyLimits[selectedDateKey] !== undefined) {
+setDailyLimit();
+}
+}
+
+function addPurchase() {
+let amount = prompt("Enter purchase amount:");
+if (amount !== null && !isNaN(amount) && amount !== "") {
+let dateKey = getDateKey(selectedDay);
+if (!appData.purchases[dateKey]) {
+appData.purchases[dateKey] = [];
+}
+appData.purchases[dateKey].push(parseFloat(amount));
+saveData();
+updateUI();
+}
+}
+
+function deletePurchase(index) {
+let dateKey = getDateKey(selectedDay);
+if (appData.purchases[dateKey]) {
+appData.purchases[dateKey].splice(index, 1);
+saveData();
+updateUI();
+}
+}
+
+// Initialize App
+updateUI();
+</script>
 </body>
 </html>
